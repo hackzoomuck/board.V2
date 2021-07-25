@@ -1,0 +1,14 @@
+mybatis:
+  type-aliases-package: com.spring.mvc.board.dto
+  mapper-locations: mybatis/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3307/board
+  devtools:
+    livereload:
+      enabled: true

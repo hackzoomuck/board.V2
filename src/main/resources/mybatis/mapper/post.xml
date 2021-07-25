@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.mvc.board.mapper.PostMapper">
+  <select id="findByPostId" parameterType="int" resultType="Post">
+    SELECT post_id, title, content, update_date
+    FROM post
+    WHERE post_id = #{postId}
+  </select>
+
+  <select id="findPwdByPostId" parameterType="int" resultType="String">
+    SELECT password
+    FROM post
+    WHERE post_id = #{postId}
+  </select>
+
+  <select id="findPost" parameterType="Search" resultType="Post">
+    SELECT post_id, title, content, update_date FROM post WHERE
+    delete_whether = FALSE
+    <if test="'postAll'.equals(search.postItem)">
+      AND (title LIKE CONCAT('%',#{search.postItemValue},'%')
+      OR content LIKE CONCAT('%',#{search.postItemValue},'%'))
+    </if>
+    <if test="'title'.equals(search.postItem)">
+      AND title LIKE CONCAT('%',#{search.postItemValue},'%')
+    </if>
+    <if test="'content'.equals(search.postItem)">
+      AND content LIKE CONCAT('%',#{search.postItemValue},'%')
+    </if>
+  </select>
+
+  <select id="insertPost" parameterType="Post">
+    INSERT INTO post (title, content, password)
+    VALUES (#{post.title}, #{post.content}, #{post.password})
+  </select>
+
+  <update id="updatePost" parameterType="Post">
+    UPDATE post
+    SET title       = #{post.title},
+        content     = #{post.content},
+        update_date = current_timestamp
+    WHERE post_id = #{post.postId}
+  </update>
+
+  <update id="deletePost" parameterType="Post">
+    UPDATE post
+    SET delete_whether = TRUE
+    WHERE post_id = #{post.postId}
+  </update>
+</mapper>
