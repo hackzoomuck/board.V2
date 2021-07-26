@@ -23,11 +23,6 @@ public class CommentController {
     return commentService.findAll(comment);
   }
 
-  @GetMapping("/{postId}/{groupId}")
-  public int searchNested(@PathVariable int postId, @PathVariable int groupId, Comment comment) {
-    return commentService.findNested(comment);
-  }
-
   @PostMapping()
   public void register(Comment comment) {
     commentService.register(comment);
