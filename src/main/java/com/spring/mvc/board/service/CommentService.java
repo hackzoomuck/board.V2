@@ -30,13 +30,9 @@ public class CommentService {
   public List<Comment> findAll(Comment comment) {
     List<Comment> comments = commentMapper.findAllComment(comment);
     for (Comment c : comments) {
-      c.setCommentCnt(commentMapper.findNestedComment(c) - 1);
+      c.setCommentCnt(commentMapper.findNestedComment(c) - 1); //count subquery로 수행
     }
     return comments;
-  }
-
-  public int findNested(Comment comment) {
-    return commentMapper.findNestedComment(comment);
   }
 
   public Boolean modify(Comment comment) {
