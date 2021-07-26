@@ -2,6 +2,9 @@ const COMMENT = {
   init: function (postId) {
     const self = this;
     const $container = $(".container");
+    self.options.arr.forEach(function (a) {
+      a = 0;
+    })
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -84,7 +87,7 @@ const COMMENT = {
                                 <div class="col" style="text-align: left; margin-bottom: 5px">
                                   <button type="button" value="showCommentButton" name="${commentId}" id="${commentId}ds"><img src="/chat.png" alt="chat" height="20px" width="20px">${nestedCommentCnt}</button>
                                 </div>
-                                <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey;"></div>
+                                <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey; display: none"></div>
                             </div>`;
       });
       callbackFunc(commentTemplate);
@@ -259,7 +262,8 @@ const COMMENT = {
         function () {
           const preCommentId = $(this).attr('name');
           const rootCommentId = "nested" + preCommentId;
-          self.showComment(postId, preCommentId, preCommentId, "showFunc");
+          self.showComment(postId, preCommentId, preCommentId,
+              "showFunc");
           $("div#" + rootCommentId).toggle();
         }
     );
@@ -308,6 +312,9 @@ const COMMENT = {
         });
       });
     });
+  },
+  options: {
+    arr: [0, 0, 0]
   }
 }
 export default COMMENT;
