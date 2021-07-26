@@ -8,9 +8,11 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface CommentMapper {
 
-  void insertComment(@Param("comment") Comment comment);
+  int insertComment(@Param("comment") Comment comment);
 
   Comment findComment(@Param("id") int id);
+
+  void updateCommentGroupId(@Param("id") int id);
 
   List<Comment> findAllComment(@Param("comment") Comment comment);
 

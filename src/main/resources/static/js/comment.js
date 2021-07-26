@@ -185,7 +185,7 @@ const COMMENT = {
                   content: $("#nestedCommentContentModal").val(),
                   password: $("#nestedCommentPasswordModal").val(),
                   parentId: commentID,
-                  groupId: commentID,
+                  groupId: groupId,
                   nickname: $("#nestedCommentNicknameModal").val()
                 })
             .done(function () {
@@ -289,15 +289,13 @@ const COMMENT = {
         .done(function (data) {
           const commentId = data[0].id;
           const nestedCommentId = "nested" + commentId;
-          const groupId = 0;
+          const groupId = data[0].groupId;
           const nickname = $("#nickname").val();
           const content = $("#content").val();
           const dataCount = 0;
           $("#content").val('');
           $("#commentPassword").val('');
           $("#nickname").val('');
-          // $("div.commentDiv").empty();
-          // DETAIL.getRootComment(postId);
           $("div.commentDiv").prepend(
               `<div class="row" style="border: 0.5px solid darkgrey;" id="${commentId}" >
                                         <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>

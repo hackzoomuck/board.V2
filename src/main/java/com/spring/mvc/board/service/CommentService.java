@@ -17,6 +17,10 @@ public class CommentService {
   public void register(Comment comment) {
     comment.setPassword(passwordEncoder.encode(comment.getPassword()));
     commentMapper.insertComment(comment);
+    int insertId = comment.getId();
+    if (commentMapper.findComment(insertId).getParentId() == 0) {
+      commentMapper.updateCommentGroupId(insertId);
+    }
   }
 
   public Comment find(int id) {
@@ -28,7 +32,6 @@ public class CommentService {
   }
 
   public int findNested(Comment comment) {
-    System.out.println("findNested " + commentMapper.findNestedComment(comment));
     return commentMapper.findNestedComment(comment);
   }
 
