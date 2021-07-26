@@ -19,5 +19,6 @@ public class Comment {
   private String password;
   private String nickname;
   private boolean deleteWhether;
+  private int commentCnt;
 }
 

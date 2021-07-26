@@ -39,8 +39,8 @@
   <select id="findNestedComment" parameterType="Comment" resultType="int">
     SELECT COUNT(*)
     FROM comment
-    WHERE post_id = #{comment.postId}
-      AND group_id = #{comment.groupId}
+    WHERE group_id = #{comment.groupId}
+      AND delete_whether = false
   </select>
 
   <select id="findPwdById" parameterType="int" resultType="String">

@@ -59,18 +59,18 @@ const COMMENT = {
     self.event(postId);
     self.getRootComment(postId);
   },
-  getCommentCount: function (postId) {
-    $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: 0})
-    .done(function (data) {
-      data.forEach(function (element) {
-        $.get(`/api/board/comment/${postId}/${element.id}`,
-            {postId: postId, groupId: element.id})
-        .done(function (data) {
-          $("#" + element.id + "ds").append(data);
-        });
-      });
-    });
-  },
+  // getCommentCount: function (postId) {
+  //   $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: 0})
+  //   .done(function (data) {
+  //     data.forEach(function (element) {
+  //       $.get(`/api/board/comment/${postId}/${element.id}`,
+  //           {postId: postId, groupId: element.id})
+  //       .done(function (data) {
+  //         $("#" + element.id + "ds").append(data);
+  //       });
+  //     });
+  //   });
+  // },
   getComments: function (postId, parentId, groupId, callbackFunc) {
     $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: parentId})
     .done(function (data) {
@@ -81,6 +81,7 @@ const COMMENT = {
         const content = element.content;
         const groupId = element.groupId;
         const nestedCommentId = "nested" + element.id;
+        const nestedCommentCnt = element.commentCnt;
         commentTemplate += `<div class="row" style="border: 0.5px solid darkgrey;" id="${commentId}" data-active="no">
                                 <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
@@ -93,7 +94,7 @@ const COMMENT = {
                                 data-bs-target="#passwordModal" data-groupId="${groupId}">삭제</button>
                                 </div>
                                 <div class="col" style="text-align: left; margin-bottom: 5px">
-                                  <button type="button" value="showCommentButton" name="${commentId}" id="${commentId}ds"><img src="/chat.png" alt="chat" height="20px" width="20px"></button>
+                                  <button type="button" value="showCommentButton" name="${commentId}" id="${commentId}ds"><img src="/chat.png" alt="chat" height="20px" width="20px">${nestedCommentCnt}</button>
                                 </div>
                                 <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey;"></div>
                             </div>`;
@@ -103,9 +104,9 @@ const COMMENT = {
   },
   getRootComment: function (postId) {
     const self = this;
-    self.getComments(postId, 0, 0, function (commentTemplate) { //groupId 추가해서 자식에서 루트Id 알게 해준다.
+    self.getComments(postId, 0, 0, function (commentTemplate) {
       $("div.commentDiv").empty().append(commentTemplate);
-      self.getCommentCount(postId);
+      // self.getCommentCount(postId);
       self.commentDetail(postId);
     });
   },

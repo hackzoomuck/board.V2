@@ -28,7 +28,11 @@ public class CommentService {
   }
 
   public List<Comment> findAll(Comment comment) {
-    return commentMapper.findAllComment(comment);
+    List<Comment> comments = commentMapper.findAllComment(comment);
+    for (Comment c : comments) {
+      c.setCommentCnt(commentMapper.findNestedComment(c) - 1);
+    }
+    return comments;
   }
 
   public int findNested(Comment comment) {
