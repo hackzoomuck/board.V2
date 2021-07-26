@@ -17,6 +17,10 @@ public class CommentService {
   public void register(Comment comment) {
     comment.setPassword(passwordEncoder.encode(comment.getPassword()));
     commentMapper.insertComment(comment);
+    int insertId = comment.getId();
+    if (commentMapper.findComment(insertId).getParentId() == 0) {
+      commentMapper.updateCommentGroupId(insertId);
+    }
   }
 
   public Comment find(int id) {
@@ -24,11 +28,14 @@ public class CommentService {
   }
 
   public List<Comment> findAll(Comment comment) {
-    return commentMapper.findAllComment(comment);
+    List<Comment> comments = commentMapper.findAllComment(comment);
+    for (Comment c : comments) {
+      c.setCommentCnt(commentMapper.findNestedComment(c) - 1);
+    }
+    return comments;
   }
 
   public int findNested(Comment comment) {
-    System.out.println("findNested " + commentMapper.findNestedComment(comment));
     return commentMapper.findNestedComment(comment);
   }
 
@@ -41,12 +48,16 @@ public class CommentService {
     }
   }
 
-  public Boolean delete(int id, String password) {
+  public String delete(int id, String password) {
     if (Boolean.TRUE.equals(checkPwd(id, password))) {
-      commentMapper.deleteComment(id);
-      return true;
+      if (commentMapper.findChildComment(id) != 0) {
+        return "답글이 존재하여, 해당 댓글을 삭제할 수 없습니다.";
+      } else {
+        commentMapper.deleteComment(id);
+        return "true";
+      }
     } else {
-      return false;
+      return "false";
     }
   }
 

@@ -2,6 +2,9 @@ const COMMENT = {
   init: function (postId) {
     const self = this;
     const $container = $(".container");
+    for (let i = 0; i < COMMENT.options.arr.length; i++) {
+      COMMENT.options.arr[i] = 0;
+    }
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -57,30 +60,19 @@ const COMMENT = {
                       </div>`
     $container.append(template);
     self.event(postId);
-    self.getRootComment(postId);
-  },
-  getCommentCount: function (postId) {
-    $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: 0})
-    .done(function (data) {
-      data.forEach(function (element) {
-        $.get(`/api/board/comment/${postId}/${element.id}`,
-            {postId: postId, groupId: element.id})
-        .done(function (data) {
-          $("#" + element.id + "ds").append(data);
-        });
-      });
-    });
+    self.getRootComment(postId, 0);
   },
   getComments: function (postId, parentId, groupId, callbackFunc) {
     $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: parentId})
     .done(function (data) {
       let commentTemplate = '';
-      data.forEach(function (element) {
-        const commentId = element.id;
-        const nickname = element.nickname;
-        const content = element.content;
-        const groupId = element.groupId;
-        const nestedCommentId = "nested" + element.id;
+      for (let i = 0; i < data.length; i++) {
+        const commentId = data[i].id;
+        const nickname = data[i].nickname;
+        const content = data[i].content;
+        const groupId = data[i].groupId;
+        const nestedCommentId = "nested" + data[i].id;
+        const nestedCommentCnt = data[i].commentCnt;
         commentTemplate += `<div class="row" style="border: 0.5px solid darkgrey;" id="${commentId}" data-active="no">
                                 <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
@@ -93,43 +85,56 @@ const COMMENT = {
                                 data-bs-target="#passwordModal" data-groupId="${groupId}">삭제</button>
                                 </div>
                                 <div class="col" style="text-align: left; margin-bottom: 5px">
-                                  <button type="button" value="showCommentButton" name="${commentId}" id="${commentId}ds"><img src="/chat.png" alt="chat" height="20px" width="20px"></button>
+                                  <button type="button" value="showCommentButton" name="${commentId}" data-options-arr="${i}"><img src="/chat.png" alt="chat" height="20px" width="20px">${nestedCommentCnt}</button>
                                 </div>
-                                <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey;"></div>
+                                <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey; display: none"></div>
                             </div>`;
-      });
+        alert(COMMENT.options.arr[i]);
+        COMMENT.options.commentId[i] = commentId;
+      }
       callbackFunc(commentTemplate);
     });
   },
-  getRootComment: function (postId) {
+  setInsertOptionsArray: function () {
+    for (let i = 1; i < COMMENT.options.arr.length; i++) {
+      COMMENT.options.arr[i] = COMMENT.options.arr[i - 1];
+      alert("idx: " + i + " value:" + COMMENT.options.arr[i])
+    }
+    COMMENT.options.arr[0] = 0;
+  },
+  getRootComment: function (postId, eventIdx) {
     const self = this;
-    self.getComments(postId, 0, 0, function (commentTemplate) { //groupId 추가해서 자식에서 루트Id 알게 해준다.
+    if (eventIdx === 1) {
+      alert("eventIdx: 1");
+      COMMENT.setInsertOptionsArray();
+    }
+    self.getComments(postId, 0, 0, function (commentTemplate) {
       $("div.commentDiv").empty().append(commentTemplate);
-      self.getCommentCount(postId);
+      alert("getComment: ");
+      for (let i = 0; i < COMMENT.options.arr.length; i++) {
+        if (COMMENT.options.arr[i] === '1') {
+          let commentId = COMMENT.options.commentId[i];
+          COMMENT.showComment(postId, commentId, commentId);
+        }
+      }
       self.commentDetail(postId);
     });
   },
-  showComment: function (postId, commentId, groupId, checkFunc) { //기능 쪼개기
+  showComment: function (postId, commentId, groupId) { //기능 쪼개기
     const self = this;
     let preCommentId = groupId;
     let rootCommentId = "nested" + groupId;
-    if (groupId === '0' && checkFunc === "deleteFunc") { //string -> 상수로 변경.(개발자 실수때문)
-      $("div#" + commentId).remove();
-    } else {
-      if (groupId === '0' && checkFunc === "insertFunc") {
-        rootCommentId = "nested" + commentId;
-        preCommentId = commentId;
-      }
-      $("div#" + rootCommentId).empty();
-      $.get(`/api/board/comment/${postId}`,
-          {postId: postId, parentId: preCommentId})
-      .done(function (data) {
-        data.forEach(function (element) {
-          const commentId = element.id;
-          const nickname = element.nickname;
-          const content = element.content;
-          const secondCommentId = "nested" + element.id;
-          const div_str = `<div class="row" style="border-top: 0.5px solid darkgrey; background-color: lightgray;" id="${commentId}" >
+
+    $("div#" + rootCommentId).empty();
+    $.get(`/api/board/comment/${postId}`,
+        {postId: postId, parentId: preCommentId})
+    .done(function (data) {
+      data.forEach(function (element) {
+        const commentId = element.id;
+        const nickname = element.nickname;
+        const content = element.content;
+        const secondCommentId = "nested" + element.id;
+        const div_str = `<div class="row" style="border-top: 0.5px solid darkgrey; background-color: lightgray;" id="${commentId}" >
                                 <div style="text-align: left">↳</div>
                                 <div class="col-" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9" style="text-align: left;">${content}</div>
@@ -144,20 +149,19 @@ const COMMENT = {
                                 <div class="col" style="text-align: left; margin-bottom: 5px"></div>
                                 <div id="${secondCommentId}" style="border-top: 0.5px solid darkgrey; background-color: darkgray; "></div>
                              </div>`;
-          $("#" + rootCommentId).append(div_str);
-          self.getComments(postId, commentId, groupId,
-              function (commentTemplate) {
-                $("#" + secondCommentId).append(commentTemplate);
-                $("#" + secondCommentId + " div.ni.col-").before(
-                    `<div style="text-align: left">↳</div><div style="text-align: left">&nbsp&nbsp↳</div>`);
-                $("#" + secondCommentId
-                    + " div.md.col- button[value|='nestedCommentButton']").remove();
-                $("#" + secondCommentId + " div.col").remove();
-                self.commentDetail(postId);
-              });
-        });
+        $("#" + rootCommentId).append(div_str);
+        self.getComments(postId, commentId, groupId,
+            function (commentTemplate) {
+              $("#" + secondCommentId).append(commentTemplate);
+              $("#" + secondCommentId + " div.ni.col-").before(
+                  `<div style="text-align: left">↳</div><div style="text-align: left">&nbsp&nbsp↳</div>`);
+              $("#" + secondCommentId
+                  + " div.md.col- button[value|='nestedCommentButton']").remove();
+              $("#" + secondCommentId + " div.col").remove();
+              self.commentDetail(postId);
+            });
       });
-    }
+    });
   },
   commentDetail: function (postId) {
     const self = this;
@@ -185,7 +189,7 @@ const COMMENT = {
                   content: $("#nestedCommentContentModal").val(),
                   password: $("#nestedCommentPasswordModal").val(),
                   parentId: commentID,
-                  groupId: commentID,
+                  groupId: groupId,
                   nickname: $("#nestedCommentNicknameModal").val()
                 })
             .done(function () {
@@ -193,7 +197,8 @@ const COMMENT = {
               $("#nestedCommentPasswordModal").val('');
               $("#nestedCommentNicknameModal").val('');
               nestedCommentModal.hide();
-              self.showComment(postId, commentID, groupId, "insertFunc");
+              // self.showComment(postId, commentID, groupId);
+              COMMENT.getRootComment(postId, 2);
             });
           });
         });
@@ -215,12 +220,16 @@ const COMMENT = {
               data: {id: commentID, password: $inputPassword.val()}
             })
             .done(function (data) {
-              if (data) {
+              if (data == "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
-                self.showComment(postId, commentID, groupId, "deleteFunc");
-              } else {
+                // self.showComment(postId, commentID, groupId);
+                // COMMENT.getRootComment(postId, 3);
+              } else if (data == "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
+              } else {
+                alert(data);
+                passwordModal.hide();
               }
             })
           })
@@ -253,11 +262,12 @@ const COMMENT = {
               if (data) {
                 alert("수정되었습니다.")
                 modifyModal.hide();
-                if (groupId === '0') {
-                  $("div#" + commentID + " div.col-9." + commentID).text(
-                      $("#commentContentModal").val());
-                }
-                self.showComment(postId, commentID, groupId, "modifyFunc");
+                // if (groupId === '0') {
+                //   $("div#" + commentID + " div.col-9." + commentID).text(
+                //       $("#commentContentModal").val());
+                // }
+                // self.showComment(postId, commentID, groupId);
+                COMMENT.getRootComment(postId, 4);
               } else {
                 $("#errorCommentPassword").text("비밀번호가 일치하지 않습니다.");
               }
@@ -268,8 +278,17 @@ const COMMENT = {
         function () {
           const preCommentId = $(this).attr('name');
           const rootCommentId = "nested" + preCommentId;
-          self.showComment(postId, preCommentId, preCommentId, "showFunc");
-          $("div#" + rootCommentId).toggle();
+          const optionArrayIdx = $(this).attr('data-options-arr');
+          self.showComment(postId, preCommentId, preCommentId);
+          $("div#" + rootCommentId).toggle(function () {
+            if (COMMENT.options.arr[optionArrayIdx]) {
+              COMMENT.options.arr[optionArrayIdx] = 0;
+            } else {
+              COMMENT.options.arr[optionArrayIdx] = 1;
+              alert("showCommentButton" + "idx:" + optionArrayIdx + " value:"
+                  + COMMENT.options.arr[optionArrayIdx]);
+            }
+          });
         }
     );
   },
@@ -289,36 +308,21 @@ const COMMENT = {
         .done(function (data) {
           const commentId = data[0].id;
           const nestedCommentId = "nested" + commentId;
-          const groupId = 0;
+          const groupId = data[0].groupId;
           const nickname = $("#nickname").val();
           const content = $("#content").val();
           const dataCount = 0;
           $("#content").val('');
           $("#commentPassword").val('');
           $("#nickname").val('');
-          // $("div.commentDiv").empty();
-          // DETAIL.getRootComment(postId);
-          $("div.commentDiv").prepend(
-              `<div class="row" style="border: 0.5px solid darkgrey;" id="${commentId}" >
-                                        <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
-                                        <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
-                                        <div class="md col-" style="text-align: right">
-                                              <button type="button" class="btn btn-secondary btn-sm" value="nestedCommentButton" name="${commentId}" data-bs-toggle="modal" 
-                                              data-bs-target="#nestedCommentModal" data-groupId="${groupId}">답글</button>
-                                              <button type="button" class="btn btn-secondary btn-sm" value="commentModifyButton" name="${commentId}" data-bs-toggle="modal" 
-                                        data-bs-target="#modifyModal" data-groupId="${groupId}">수정</button>
-                                              <button type="button" class="btn btn-primary btn-sm" value="commentDeleteButton" name="${commentId}" data-bs-toggle="modal" 
-                                        data-bs-target="#passwordModal"data-groupId="${groupId}">삭제</button>
-                                        </div>
-                                        <div class="col" style="text-align: left; margin-bottom: 5px">
-                                          <button type="button" value="showCommentButton" name="${commentId}"><img src="/chat.png" alt="chat" height="20px" width="20px"> ${dataCount} </button>
-                                        </div>
-                                        <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey;"></div>
-                                       </div>`)
-          self.commentDetail(postId);
+          COMMENT.getRootComment(postId, 1);
         });
       });
     });
+  },
+  options: {
+    arr: ['', '', '', ''],
+    commentId: ['', '', '', '']
   }
 }
 export default COMMENT;
