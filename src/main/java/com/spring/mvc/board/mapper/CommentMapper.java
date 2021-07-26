@@ -18,6 +18,8 @@ public interface CommentMapper {
 
   int findNestedComment(@Param("comment") Comment comment);
 
+  int findChildComment(@Param("id") int id);
+
   String findPwdById(@Param("id") int id);
 
   void updateComment(@Param("comment") Comment comment);

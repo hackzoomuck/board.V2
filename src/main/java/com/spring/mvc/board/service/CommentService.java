@@ -48,12 +48,16 @@ public class CommentService {
     }
   }
 
-  public Boolean delete(int id, String password) {
+  public String delete(int id, String password) {
     if (Boolean.TRUE.equals(checkPwd(id, password))) {
-      commentMapper.deleteComment(id);
-      return true;
+      if (commentMapper.findChildComment(id) != 0) {
+        return "답글이 존재하여, 해당 댓글을 삭제할 수 없습니다.";
+      } else {
+        commentMapper.deleteComment(id);
+        return "true";
+      }
     } else {
-      return false;
+      return "false";
     }
   }
 

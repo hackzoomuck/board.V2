@@ -34,7 +34,7 @@ public class CommentController {
   }
 
   @DeleteMapping
-  public Boolean delete(int id, String password) {
+  public String delete(int id, String password) {
     return commentService.delete(id, password);
   }
 

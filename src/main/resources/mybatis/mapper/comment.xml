@@ -43,6 +43,13 @@
       AND delete_whether = false
   </select>
 
+  <select id="findChildComment" parameterType="int" resultType="int">
+    SELECT COUNT(*)
+    FROM comment
+    WHERE parent_id = #{id}
+      AND delete_whether = false
+  </select>
+
   <select id="findPwdById" parameterType="int" resultType="String">
     SELECT password
     FROM comment

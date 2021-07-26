@@ -59,18 +59,6 @@ const COMMENT = {
     self.event(postId);
     self.getRootComment(postId);
   },
-  // getCommentCount: function (postId) {
-  //   $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: 0})
-  //   .done(function (data) {
-  //     data.forEach(function (element) {
-  //       $.get(`/api/board/comment/${postId}/${element.id}`,
-  //           {postId: postId, groupId: element.id})
-  //       .done(function (data) {
-  //         $("#" + element.id + "ds").append(data);
-  //       });
-  //     });
-  //   });
-  // },
   getComments: function (postId, parentId, groupId, callbackFunc) {
     $.get(`/api/board/comment/${postId}`, {postId: postId, parentId: parentId})
     .done(function (data) {
@@ -106,7 +94,6 @@ const COMMENT = {
     const self = this;
     self.getComments(postId, 0, 0, function (commentTemplate) {
       $("div.commentDiv").empty().append(commentTemplate);
-      // self.getCommentCount(postId);
       self.commentDetail(postId);
     });
   },
@@ -216,12 +203,15 @@ const COMMENT = {
               data: {id: commentID, password: $inputPassword.val()}
             })
             .done(function (data) {
-              if (data) {
+              if (data == "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
                 self.showComment(postId, commentID, groupId, "deleteFunc");
-              } else {
+              } else if (data == "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
+              } else {
+                alert(data);
+                passwordModal.hide();
               }
             })
           })
