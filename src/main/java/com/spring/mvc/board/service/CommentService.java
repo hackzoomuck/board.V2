@@ -27,8 +27,8 @@ public class CommentService {
     return commentMapper.findComment(id);
   }
 
-  public List<Comment> findAll(Comment comment) {
-    List<Comment> comments = commentMapper.findAllComment(comment);
+  public List<Comment> findAll(int postId, int parentId) {
+    List<Comment> comments = commentMapper.findAllComment(postId, parentId);
     for (Comment c : comments) {
       c.setCommentCnt(commentMapper.findNestedComment(c) - 1); //count subquery로 수행
     }

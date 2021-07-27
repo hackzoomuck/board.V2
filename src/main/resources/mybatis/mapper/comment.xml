@@ -24,11 +24,11 @@
     WHERE id = #{id}
   </update>
 
-  <select id="findAllComment" parameterType="Comment" resultType="Comment">
+  <select id="findAllComment" parameterType="map" resultType="Comment">
     SELECT id, content, nickname, parent_id, group_id
     FROM comment
-    WHERE post_id = #{comment.postId}
-      AND parent_id = #{comment.parentId}
+    WHERE post_id = #{postId}
+      AND parent_id = #{parentId}
       AND delete_whether = false
     ORDER BY id DESC
   </select>

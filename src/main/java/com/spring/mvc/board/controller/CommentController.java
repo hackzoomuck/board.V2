@@ -18,9 +18,9 @@ public class CommentController {
     return commentService.find(id);
   }
 
-  @GetMapping("/{postId}")
-  public List<Comment> searchAll(@PathVariable int postId, Comment comment) {
-    return commentService.findAll(comment);
+  @GetMapping("/{postId}/{parentId}")
+  public List<Comment> searchAll(@PathVariable int postId, @PathVariable int parentId) {
+    return commentService.findAll(postId, parentId);
   }
 
   @PostMapping()
