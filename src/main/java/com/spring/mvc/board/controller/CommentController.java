@@ -20,7 +20,7 @@ public class CommentController {
 
   @GetMapping("/{postId}")
   public List<Comment> searchAll(@PathVariable int postId, Comment comment) {
-    return commentService.findAll(comment);
+    return commentService.findAll(postId, comment);
   }
 
   @PostMapping()
