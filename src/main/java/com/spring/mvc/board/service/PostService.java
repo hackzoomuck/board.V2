@@ -31,7 +31,7 @@ public class PostService {
 
   public Boolean delete(Post post) {
     if (Boolean.TRUE.equals(checkPwd(post.getPostId(), post.getPassword()))) {
-      postMapper.deletePost(post);
+      postMapper.deletePost(post.getPostId());
       return true;
     } else {
       return false;

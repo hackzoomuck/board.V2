@@ -49,10 +49,6 @@ const MODIFY = {
   },
 
   updatePost: function (postId) {
-    let passwordModal = new bootstrap.Modal(
-        document.getElementById('passwordModal'), {
-          keyboard: false
-        });
     let inputContentVal = $("#inputContent").val();
     inputContentVal = inputContentVal.replaceAll('<', '&#60;'); //replace 호출 함수
     inputContentVal = inputContentVal.replaceAll('>', '&#62;');

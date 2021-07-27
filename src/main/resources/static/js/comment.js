@@ -63,9 +63,12 @@ const COMMENT = {
     self.getRootComment(postId);
   },
   getComments: function (postId, parentId, callbackFunc) {
-    $.get(`/api/board/comment/${postId}`, {parentId: parentId})
+    $.get(`/api/board/comment/${postId}/${parentId}`)
     .done(function (data) {
       let commentTemplate = '';
+      console.log("getComments start");
+      console.log(data);
+      console.log("getComments end");
       for (let i = 0; i < data.length; i++) {
         const commentId = data[i].id;
         const nickname = data[i].nickname;
@@ -73,7 +76,7 @@ const COMMENT = {
         const groupId = data[i].groupId;
         const nestedCommentId = "nested" + data[i].id;
         const nestedCommentCnt = data[i].commentCnt;
-        commentTemplate += `<div class="row" style="border: 0.5px solid darkgrey;" id="${commentId}">
+        commentTemplate += `<div class="row" style="border: 1px solid darkgrey;" id="${commentId}">
                                 <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
                                 <div class="md col-" style="text-align: right">
@@ -87,7 +90,7 @@ const COMMENT = {
                                 <div class="col" style="text-align: left; margin-bottom: 5px">
                                   <button type="button" value="showCommentButton" name="${commentId}" data-groupId="${groupId}"><img src="/chat.png" alt="chat" height="20px" width="20px">${nestedCommentCnt}</button>
                                 </div>
-                                <div id="${nestedCommentId}" style="border: 0.5px solid darkgrey; display: none"></div>
+                                <div id="${nestedCommentId}" style="border: 1px solid darkgrey; display: none"></div>
                             </div>`;
       }
       callbackFunc(commentTemplate);
@@ -96,7 +99,7 @@ const COMMENT = {
   commentActiveCheck: function (postId) {
     COMMENT.options.commentActive.forEach(function (commentId) {
       COMMENT.showComment(postId, commentId);
-      $("div#nested" + commentId).toggle();
+      $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
     })
   },
   getRootComment: function (postId) {
@@ -110,16 +113,20 @@ const COMMENT = {
   },
   showComment: function (postId, commentId) {
     const self = this;
+    let preCommentId = commentId;
     let rootCommentId = "nested" + commentId;
     $("div#" + rootCommentId).empty();
-    $.get(`/api/board/comment/${postId}`, {parentId: commentId})
+    $.get(`/api/board/comment/${postId}/${preCommentId}`)
     .done(function (data) {
+      console.log("showComment start");
+      console.log(data);
+      console.log("showComment end");
       data.forEach(function (element) {
         const commentId = element.id;
         const nickname = element.nickname;
         const content = element.content;
         const secondCommentId = "nested" + element.id;
-        let div_str = `<div class="row" style="border-top: 0.5px solid darkgrey; background-color: lightgray;" id="${commentId}" >
+        let div_str = `<div class="row" style="border-top: 1px solid darkgrey; background-color: lightgray;" id="${commentId}" >
                           <div style="text-align: left">↳</div>
                           <div class="col-" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                           <div class="col-9" style="text-align: left;">${content}</div>
@@ -132,7 +139,7 @@ const COMMENT = {
                           data-bs-target="#passwordModal" data-groupId="${preCommentId}">삭제</button>
                           </div>
                           <div class="col" style="text-align: left; margin-bottom: 5px"></div>
-                          <div id="${secondCommentId}" style="border-top: 0.5px solid darkgrey; background-color: darkgray; "></div>
+                          <div id="${secondCommentId}" style="border-top: 1px solid darkgrey; background-color: darkgray; "></div>
                        </div>`;
         $("#" + rootCommentId).append(div_str);
         self.getComments(postId, commentId, function (commentTemplate) {
@@ -181,8 +188,8 @@ const COMMENT = {
               $("#nestedCommentPasswordModal").val('');
               $("#nestedCommentNicknameModal").val('');
               nestedCommentModal.hide();
-              if (COMMENT.options.commentActive.indexOf(commentID) == -1) {
-                COMMENT.options.commentActive.push(commentID);
+              if (COMMENT.options.commentActive.indexOf(groupId) === -1) {
+                COMMENT.options.commentActive.push(groupId);
               }
               COMMENT.getRootComment(postId);
             });
@@ -205,11 +212,11 @@ const COMMENT = {
               data: {id: commentID, password: $inputPassword.val()}
             })
             .done(function (data) {
-              if (data == "true") {
+              if (data === "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
                 COMMENT.getRootComment(postId);
-              } else if (data == "false") {
+              } else if (data === "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
               } else {
                 alert(data);
@@ -258,7 +265,7 @@ const COMMENT = {
           const rootCommentId = "nested" + commentId;
           self.showComment(postId, commentId, commentId);
           $("div#" + rootCommentId).toggle(function () {
-            if (COMMENT.options.commentActive.indexOf(commentId) == -1) {
+            if (COMMENT.options.commentActive.indexOf(commentId) === -1) {
               COMMENT.options.commentActive.push(commentId);
             } else {
               const pos = COMMENT.options.commentActive.indexOf(commentId);
@@ -278,14 +285,10 @@ const COMMENT = {
             nickname: $("#nickname").val()
           })
       .done(function () {
-        $.get(`/api/board/comment/${postId}`,
-            {parentId: 0})
-        .done(function (data) {
-          $("#content").val('');
-          $("#commentPassword").val('');
-          $("#nickname").val('');
-          COMMENT.getRootComment(postId);
-        });
+        $("#content").val('');
+        $("#commentPassword").val('');
+        $("#nickname").val('');
+        COMMENT.getRootComment(postId);
       });
     });
   },

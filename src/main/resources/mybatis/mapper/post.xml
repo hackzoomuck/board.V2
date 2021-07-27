@@ -44,9 +44,9 @@
     WHERE post_id = #{post.postId}
   </update>
 
-  <update id="deletePost" parameterType="Post">
+  <update id="deletePost" parameterType="int">
     UPDATE post
     SET delete_whether = TRUE
-    WHERE post_id = #{post.postId}
+    WHERE post_id = #{postId}
   </update>
 </mapper>

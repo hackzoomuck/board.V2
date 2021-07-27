@@ -1,37 +1,37 @@
 div.container > div.row:first-child {
-  text-align: center;
-  font-weight: bold;
+    text-align: center;
+    font-weight: bold;
 }
 
 div.container > div.row > div:first-child {
-  text-align: center;
+    text-align: center;
 }
 
 div.container > div.row > div:nth-child(3) {
-  text-align: center;
+    text-align: center;
 }
 
 div.container > div.row > p {
-  text-align: center;
+    text-align: center;
 }
 
 div.container > div.row {
-  border: 0.5px solid darkgrey;
-  cursor: pointer;
+    border: 1px solid darkgrey;
+    cursor: pointer;
 }
 
 div.container > div.row:nth-child(n+2):hover {
-  background-color: darkgrey;
+    background-color: darkgrey;
 }
 
 #pageUl {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .validError {
-  color: red;
+    color: red;
 }
 
 .modal-open {
-  overflow-y: auto;
+    overflow-y: auto;
 }
