@@ -26,10 +26,8 @@ const DETAIL = {
                             <button type="button" class="btn btn-secondary" data-bs-toggle="modal" 
                             data-bs-target="#passwordModal" id="deleteButton">삭제</button>
                           </div>
-                        </div>
-                        <nav aria-label="pagination" id="pageNav">
-                        <ul class="pagination justify-content-center" id="pageUl"></ul>
-                        </nav>`
+                          <div class="comment"></div>
+                        </div>`
       $app.empty();
       $app.append(template);
       self.getPost(postId);

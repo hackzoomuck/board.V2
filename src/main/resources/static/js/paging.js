@@ -1,4 +1,5 @@
 import LIST from "./list.js";
+import COMMENT from "./comment.js";
 
 const PAGING = {
   init: function () {
@@ -74,6 +75,10 @@ const PAGING = {
       if (PAGING.options.pageName === 'LIST') { // PAGING.options.pageName 을 모듈이름으로 사용할 수 있는지?
         LIST.pagingOptions.pageNumber = $(this).val();
         LIST.init();
+      }
+      if (PAGING.options.pageName === 'COMMENT') {
+        COMMENT.pagingOptions.pageNumber = $(this).val();
+        COMMENT.init(COMMENT.pagingOptions.postId);
       }
     });
   },

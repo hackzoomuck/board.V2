@@ -1,10 +1,14 @@
+import PAGING from "./paging.js";
+
 const COMMENT = {
   init: function (postId) {
     const self = this;
-    const $container = $(".container");
+    const $comment = $(".comment");
     COMMENT.options.commentActive.forEach(function () {
       COMMENT.options.commentActive.pop();
     })
+    COMMENT.pagingOptions.postId = postId;
+    PAGING.options = $.extend({}, PAGING.options, COMMENT.pagingOptions);
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -15,6 +19,10 @@ const COMMENT = {
                       </div>
                       
                       <div class="commentDiv" style="margin-top: 15px; margin-bottom: 30px"></div>
+                      
+                      <nav aria-label="pagination" id="pageNav">
+                        <ul class="pagination justify-content-center" id="pageUl"></ul>
+                      </nav>
                       
                       <div class="modal fade" id="modifyModal" tabindex="-1" aria-labelledby="modifyModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -58,7 +66,8 @@ const COMMENT = {
                           </div>
                         </div>
                       </div>`
-    $container.append(template);
+    $comment.empty().append(template);
+    $("#pageUl").empty();
     self.event(postId);
     self.getRootComment(postId);
   },
@@ -66,10 +75,26 @@ const COMMENT = {
     $.get(`/api/board/comment/${postId}/${parentId}`)
     .done(function (data) {
       let commentTemplate = '';
-      console.log("getComments start");
-      console.log(data);
-      console.log("getComments end");
-      for (let i = 0; i < data.length; i++) {
+
+      let startIdx = 0;
+      let endIdx = data.length;
+
+      if (parentId === 0 && endIdx > 0) {
+        PAGING.options.totalCount = data.length;
+        PAGING.setStartEndPage();
+        if (PAGING.variable.totalPageNumber
+            < COMMENT.pagingOptions.pageNumber) {
+          COMMENT.pagingOptions.pageNumber = PAGING.variable.totalPageNumber;
+          PAGING.options.pageNumber = COMMENT.pagingOptions.pageNumber;
+          PAGING.setStartEndPage();
+        }
+        const pageNumber = COMMENT.pagingOptions.pageNumber;
+        const listSize = COMMENT.pagingOptions.listSize;
+        startIdx = (pageNumber - 1) * listSize;
+        endIdx = pageNumber * listSize;
+      }
+
+      for (let i = startIdx; i < endIdx && i < data.length; i++) {
         const commentId = data[i].id;
         const nickname = data[i].nickname;
         const content = data[i].content;
@@ -94,6 +119,13 @@ const COMMENT = {
                             </div>`;
       }
       callbackFunc(commentTemplate);
+
+      if (parentId === 0 && endIdx === 0) {
+        $("#pageUl").empty();
+      } else {
+        PAGING.init();
+      }
+
     });
   },
   commentActiveCheck: function (postId) {
@@ -118,9 +150,6 @@ const COMMENT = {
     $("div#" + rootCommentId).empty();
     $.get(`/api/board/comment/${postId}/${preCommentId}`)
     .done(function (data) {
-      console.log("showComment start");
-      console.log(data);
-      console.log("showComment end");
       data.forEach(function (element) {
         const commentId = element.id;
         const nickname = element.nickname;
@@ -294,6 +323,13 @@ const COMMENT = {
   },
   options: {
     commentActive: []
+  },
+  pagingOptions: {
+    pageNumber: 1,
+    pageSize: 2,
+    listSize: 3,
+    pageName: 'COMMENT',
+    postId: ''
   }
 }
 export default COMMENT;

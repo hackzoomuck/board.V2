@@ -1,6 +1,7 @@
 import PAGING from "./paging.js";
 import DETAIL from "./detail.js";
 import REGISTER from "./register.js";
+import COMMENT from "./comment.js";
 
 const LIST = {
   init: function () {
@@ -64,7 +65,7 @@ const LIST = {
             $("div.container").append(div_str);
           }
           PAGING.options.totalCount = len;
-          PAGING.setStartEndPage("list");
+          PAGING.setStartEndPage();
           const pageNumber = PAGING.options.pageNumber;
           const listSize = PAGING.options.listSize;
           const idx = len - (pageNumber - 1) * listSize;
@@ -86,6 +87,7 @@ const LIST = {
   },
   detail: function () {
     $("div.container > div.row:gt(0)").off().click(function () {
+      COMMENT.pagingOptions.pageNumber = 1;
       DETAIL.init($(this).find("div.col:first-child").text());
     })
   },
