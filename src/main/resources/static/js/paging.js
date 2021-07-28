@@ -22,7 +22,7 @@ const PAGING = {
     for (let idx = self.variable.startPageNumber;
         idx <= self.variable.endPageNumber; idx++) {
       let li_str;
-      if (idx == self.options.pageNumber) {
+      if (idx === self.options.pageNumber) {
         li_str = `<li class="page-item active" aria-current="page" value="${idx}"><a class="page-link">${idx}</a></li>`;
       } else {
         li_str = `<li class="page-item" value="${idx}"><a class="page-link">${idx}</a></li>`;
@@ -41,12 +41,9 @@ const PAGING = {
     }
     self.event();
   },
-  setStartEndPage: function (useThing) {
+  setStartEndPage: function () {
     const self = this;
     let selfOptions = this.options;
-    if (useThing === "comment") {
-      selfOptions = this.commentOptions;
-    }
     let totalNumber = Math.floor(
         selfOptions.totalCount / selfOptions.listSize);
     if (selfOptions.totalCount % selfOptions.listSize > 0) {
@@ -74,21 +71,18 @@ const PAGING = {
   },
   event: function () {
     $("#pageUl > ").off().on("click", function () {
-      PAGING.options.pageNumber = $(this).val();
-      LIST.init();
+      if (PAGING.options.pageName === 'LIST') { // PAGING.options.pageName 을 모듈이름으로 사용할 수 있는지?
+        LIST.pagingOptions.pageNumber = $(this).val();
+        LIST.init();
+      }
     });
   },
   options: {
-    pageNumber: 1,
+    pageNumber: '',
     totalCount: '',
-    pageSize: 3,
-    listSize: 5
-  },
-  commentOptions: {
-    pageNumber: 1,
-    totalCount: '',
-    pageSize: 2,
-    listSize: 3
+    pageSize: '',
+    listSize: '',
+    pageName: ''
   },
   variable: {
     startPageNumber: '',

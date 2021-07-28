@@ -6,6 +6,7 @@ const LIST = {
   init: function () {
     const self = this;
     const $app = $("#app");
+    PAGING.options = $.extend({}, PAGING.options, LIST.pagingOptions);
     $("body").removeClass("modal-open").removeAttr("style");
     const template = `<h2 style="text-align: center; margin-top: 30px">게시판</h2>
                         <div class="input-group mb-3"
@@ -114,6 +115,12 @@ const LIST = {
     postItem: 'postAll',
     postItemValue: '',
   },
+  pagingOptions: {
+    pageNumber: 1,
+    pageSize: 3,
+    listSize: 5,
+    pageName: 'LIST'
+  }
 }
 
 LIST.init()
