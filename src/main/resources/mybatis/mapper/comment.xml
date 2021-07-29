@@ -28,9 +28,20 @@
     SELECT id, content, nickname, parent_id, group_id
     FROM comment
     WHERE post_id = #{postId}
+    AND parent_id = #{parentId}
+    AND delete_whether = false
+    ORDER BY id DESC
+    <if test="listSize != 0">
+      LIMIT #{listSize} OFFSET #{startIdx}
+    </if>
+  </select>
+
+  <select id="findTotalCount" parameterType="map" resultType="int">
+    SELECT COUNT(*)
+    FROM comment
+    WHERE post_id = #{postId}
       AND parent_id = #{parentId}
       AND delete_whether = false
-    ORDER BY id DESC
   </select>
 
   <select id="findNestedComment" parameterType="Comment" resultType="int">

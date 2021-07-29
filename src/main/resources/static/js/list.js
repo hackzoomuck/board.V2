@@ -105,14 +105,14 @@ const LIST = {
       $("div.container > div.row:gt(0)").remove();
       self.params.postItem = $("#postItem").val();
       self.params.postItemValue = $("#postItemValue").val();
-      PAGING.options.pageNumber = 1;
+      LIST.pagingOptions.pageNumber = 1;
       self.getPosts(self.pagingOptions.pageNumber);
     });
     $("#searchAllButton").on("click", function () {
       $("div.container > div.row:gt(0)").remove();
       $("#postItem").val("postAll");
       $("#postItemValue").val("");
-      PAGING.options.pageNumber = 1;
+      LIST.pagingOptions.pageNumber = 1;
       self.params.postItem = 'postAll';
       self.params.postItemValue = '';
       self.getPosts(self.pagingOptions.pageNumber);

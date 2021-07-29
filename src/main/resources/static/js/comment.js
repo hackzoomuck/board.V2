@@ -8,7 +8,6 @@ const COMMENT = {
       COMMENT.options.commentActive.pop();
     })
     COMMENT.pagingOptions.postId = postId;
-    PAGING.options = $.extend({}, PAGING.options, COMMENT.pagingOptions);
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -69,39 +68,18 @@ const COMMENT = {
     $comment.empty().append(template);
     $("#pageUl").empty();
     self.event(postId);
-    self.getRootComment(postId);
+    self.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
   },
-  getComments: function (postId, parentId, callbackFunc) {
-    $.get(`/api/board/comment/${postId}/${parentId}`)
-    .done(function (data) {
-      let commentTemplate = '';
-
-      let startIdx = 0;
-      let endIdx = data.length;
-
-      if (parentId === 0 && endIdx > 0) {
-        PAGING.options.totalCount = data.length;
-        PAGING.setStartEndPage();
-        if (PAGING.variable.totalPageNumber
-            < COMMENT.pagingOptions.pageNumber) {
-          COMMENT.pagingOptions.pageNumber = PAGING.variable.totalPageNumber;
-          PAGING.options.pageNumber = COMMENT.pagingOptions.pageNumber;
-          PAGING.setStartEndPage();
-        }
-        const pageNumber = COMMENT.pagingOptions.pageNumber;
-        const listSize = COMMENT.pagingOptions.listSize;
-        startIdx = (pageNumber - 1) * listSize;
-        endIdx = pageNumber * listSize;
-      }
-
-      for (let i = startIdx; i < endIdx && i < data.length; i++) {
-        const commentId = data[i].id;
-        const nickname = data[i].nickname;
-        const content = data[i].content;
-        const groupId = data[i].groupId;
-        const nestedCommentId = "nested" + data[i].id;
-        const nestedCommentCnt = data[i].commentCnt;
-        commentTemplate += `<div class="row" style="border: 1px solid darkgrey;" id="${commentId}">
+  getCommentTemplate: function (data, callbackFunc) {
+    let commentTemplate = ''
+    data.forEach(function (element) {
+      const commentId = element.id;
+      const nickname = element.nickname;
+      const content = element.content;
+      const groupId = element.groupId;
+      const nestedCommentId = "nested" + element.id;
+      const nestedCommentCnt = element.commentCnt;
+      commentTemplate += `<div class="row" style="border: 1px solid darkgrey;" id="${commentId}">
                                 <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
                                 <div class="md col-" style="text-align: right">
@@ -117,15 +95,33 @@ const COMMENT = {
                                 </div>
                                 <div id="${nestedCommentId}" style="border: 1px solid darkgrey; display: none"></div>
                             </div>`;
-      }
+    });
+    callbackFunc(commentTemplate);
+  },
+  getCommentCount: function (postId, parentId) {
+    $.get(`/api/board/comment/totalCount/${postId}/${parentId}`)
+    .done(function (data) {
+      COMMENT.pagingOptions.totalCount = data;
+    })
+  },
+  getComments: function (postId, parentId, callbackFunc) {
+    let commentTemplate = '';
+    let startIdx = 0;
+    let listSize = 0;
+    if (parentId === 0) {
+      COMMENT.getCommentCount(postId, parentId);
+      startIdx = (COMMENT.pagingOptions.pageNumber - 1)
+          * COMMENT.pagingOptions.listSize;
+      listSize = COMMENT.pagingOptions.listSize;
+    }
+    $.get(`/api/board/comment/${postId}/${parentId}`,
+        {startIdx: startIdx, listSize: listSize})
+    .done(function (data) {
+      PAGING.init(COMMENT.pagingOptions);
+      COMMENT.getCommentTemplate(data, function (getCommentTemplate) {
+        commentTemplate = getCommentTemplate;
+      });
       callbackFunc(commentTemplate);
-
-      if (parentId === 0 && endIdx === 0) {
-        $("#pageUl").empty();
-      } else {
-        PAGING.init();
-      }
-
     });
   },
   commentActiveCheck: function (postId) {
@@ -134,8 +130,10 @@ const COMMENT = {
       $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
     })
   },
-  getRootComment: function (postId) {
+  getRootComment: function (postId, pageNumber) {
     $("div.commentDiv").empty()
+    COMMENT.pagingOptions.func = this.getRootComment;
+    COMMENT.pagingOptions.pageNumber = pageNumber;
     COMMENT.getComments(postId, 0, function (commentTemplate) {
       $("div.commentDiv").append(commentTemplate);
       COMMENT.commentActiveCheck(postId);
@@ -148,7 +146,8 @@ const COMMENT = {
     let preCommentId = commentId;
     let rootCommentId = "nested" + commentId;
     $("div#" + rootCommentId).empty();
-    $.get(`/api/board/comment/${postId}/${preCommentId}`)
+    $.get(`/api/board/comment/${postId}/${preCommentId}`,
+        {startIdx: 0, listSize: 0})
     .done(function (data) {
       data.forEach(function (element) {
         const commentId = element.id;
@@ -220,7 +219,7 @@ const COMMENT = {
               if (COMMENT.options.commentActive.indexOf(groupId) === -1) {
                 COMMENT.options.commentActive.push(groupId);
               }
-              COMMENT.getRootComment(postId);
+              COMMENT.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
             });
           });
         });
@@ -244,7 +243,8 @@ const COMMENT = {
               if (data === "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
-                COMMENT.getRootComment(postId);
+                COMMENT.getRootComment(postId,
+                    COMMENT.pagingOptions.pageNumber);
               } else if (data === "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
               } else {
@@ -281,7 +281,8 @@ const COMMENT = {
               if (data) {
                 alert("수정되었습니다.")
                 modifyModal.hide();
-                COMMENT.getRootComment(postId);
+                COMMENT.getRootComment(postId,
+                    COMMENT.pagingOptions.pageNumber);
               } else {
                 $("#errorCommentPassword").text("비밀번호가 일치하지 않습니다.");
               }
@@ -292,7 +293,7 @@ const COMMENT = {
         function () {
           const commentId = $(this).attr('name');
           const rootCommentId = "nested" + commentId;
-          self.showComment(postId, commentId, commentId);
+          self.showComment(postId, commentId);
           $("div#" + rootCommentId).toggle(function () {
             if (COMMENT.options.commentActive.indexOf(commentId) === -1) {
               COMMENT.options.commentActive.push(commentId);
@@ -317,7 +318,7 @@ const COMMENT = {
         $("#content").val('');
         $("#commentPassword").val('');
         $("#nickname").val('');
-        COMMENT.getRootComment(postId);
+        COMMENT.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
       });
     });
   },
@@ -325,8 +326,9 @@ const COMMENT = {
     commentActive: []
   },
   pagingOptions: {
-    //func : COMMENT.getComments, //()붙이면 실행됨.
+    func: '',
     pageNumber: 1,
+    totalCount: '',
     pageSize: 2,
     listSize: 3,
     pageName: 'COMMENT',

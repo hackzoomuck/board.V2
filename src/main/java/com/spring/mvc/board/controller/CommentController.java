@@ -19,8 +19,14 @@ public class CommentController {
   }
 
   @GetMapping("/{postId}/{parentId}")
-  public List<Comment> searchAll(@PathVariable int postId, @PathVariable int parentId) {
-    return commentService.findAll(postId, parentId);
+  public List<Comment> searchAll(@PathVariable int postId, @PathVariable int parentId, int startIdx,
+      int listSize) {
+    return commentService.findAll(postId, parentId, startIdx, listSize);
+  }
+
+  @GetMapping("/totalCount/{postId}/{parentId}")
+  public int totalCount(@PathVariable int postId, @PathVariable int parentId) {
+    return commentService.totalCount(postId, parentId);
   }
 
   @PostMapping()

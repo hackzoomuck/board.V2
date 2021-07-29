@@ -2,12 +2,15 @@ const PAGING = {
   init: function (pagingOptions) {
     const self = this;
     PAGING.options = $.extend({}, PAGING.options, pagingOptions);
-    console.log("in paging init " + PAGING.options.pageName + " ");
-    self.setStartEndPage();
+    self.settingStartEndPage();
+    if (PAGING.variable.totalPageNumber !== 0 && PAGING.variable.totalPageNumber
+        < PAGING.options.pageNumber) {
+      PAGING.options.func(PAGING.options.postId,
+          PAGING.variable.totalPageNumber);
+    }
     self.draw();
   },
   draw: function () {
-    console.log("paging draw");
     const self = this;
     const $pageUl = $("#pageUl");
     $pageUl.empty();
@@ -43,7 +46,7 @@ const PAGING = {
     }
     self.event();
   },
-  setStartEndPage: function () {
+  settingStartEndPage: function () {
     const self = this;
     let selfOptions = this.options;
     let totalNumber = Math.floor(
@@ -70,23 +73,14 @@ const PAGING = {
       endNumber = this.variable.totalPageNumber;
     }
     self.variable.endPageNumber = endNumber;
-    console.log("setStartEnd: " + self.variable.startPageNumber + ", "
-        + self.variable.endPageNumber)
   },
   event: function () {
-    //const self = this;
     $("#pageUl > ").off().on("click", function () {
-      console.log($(this).val());
-      PAGING.options.func($(this).val());
-      // if (PAGING.options.pageName === 'LIST') { // PAGING.options.pageName 을 모듈이름으로 사용할 수 있는지?
-      //   LIST.pagingOptions.pageNumber = $(this).val();
-      //   LIST.init(); // init 호출하는 게 아니라 list를 그리는 부분만 호출하기. options의 function
-      // }
-      // if (PAGING.options.pageName === 'COMMENT') {
-      //   COMMENT.pagingOptions.pageNumber = $(this).val();
-      //   COMMENT.init(COMMENT.pagingOptions.postId);
-      // }
-      //this.options.func();
+      if (PAGING.options.pageName === "COMMENT") {
+        PAGING.options.func(PAGING.options.postId, $(this).val())
+      } else {
+        PAGING.options.func($(this).val());
+      }
     });
   },
   options: {
