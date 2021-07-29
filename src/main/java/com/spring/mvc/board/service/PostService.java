@@ -38,8 +38,12 @@ public class PostService {
     }
   }
 
-  public List<Post> find(Search search) {
-    return postMapper.findPost(search);
+  public List<Post> find(Search search, int startIdx, int listSize) {
+    return postMapper.findPost(search, startIdx, listSize);
+  }
+
+  public int totalCount(Search search) {
+    return postMapper.findTotalCount(search);
   }
 
   public Post detail(int postId) {

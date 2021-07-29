@@ -1,8 +1,13 @@
-import LIST from "./list.js";
-
 const PAGING = {
-  init: function () {
+  init: function (pagingOptions) {
     const self = this;
+    PAGING.options = $.extend({}, PAGING.options, pagingOptions);
+    self.settingStartEndPage();
+    if (PAGING.variable.totalPageNumber !== 0 && PAGING.variable.totalPageNumber
+        < PAGING.options.pageNumber) {
+      PAGING.options.func(PAGING.options.postId,
+          PAGING.variable.totalPageNumber);
+    }
     self.draw();
   },
   draw: function () {
@@ -22,7 +27,7 @@ const PAGING = {
     for (let idx = self.variable.startPageNumber;
         idx <= self.variable.endPageNumber; idx++) {
       let li_str;
-      if (idx == self.options.pageNumber) {
+      if (idx === self.options.pageNumber) {
         li_str = `<li class="page-item active" aria-current="page" value="${idx}"><a class="page-link">${idx}</a></li>`;
       } else {
         li_str = `<li class="page-item" value="${idx}"><a class="page-link">${idx}</a></li>`;
@@ -41,12 +46,9 @@ const PAGING = {
     }
     self.event();
   },
-  setStartEndPage: function (useThing) {
+  settingStartEndPage: function () {
     const self = this;
     let selfOptions = this.options;
-    if (useThing === "comment") {
-      selfOptions = this.commentOptions;
-    }
     let totalNumber = Math.floor(
         selfOptions.totalCount / selfOptions.listSize);
     if (selfOptions.totalCount % selfOptions.listSize > 0) {
@@ -74,21 +76,17 @@ const PAGING = {
   },
   event: function () {
     $("#pageUl > ").off().on("click", function () {
-      PAGING.options.pageNumber = $(this).val();
-      LIST.init();
+      PAGING.options.parameters.pageNumber = $(this).val();
+      PAGING.options.func(PAGING.options.parameters);
     });
   },
   options: {
-    pageNumber: 1,
+    func: '',
+    pageNumber: '',
     totalCount: '',
-    pageSize: 3,
-    listSize: 5
-  },
-  commentOptions: {
-    pageNumber: 1,
-    totalCount: '',
-    pageSize: 2,
-    listSize: 3
+    pageSize: '',
+    listSize: '',
+    parameters: {}
   },
   variable: {
     startPageNumber: '',

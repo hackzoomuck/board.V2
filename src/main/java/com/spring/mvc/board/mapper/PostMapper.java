@@ -9,11 +9,14 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface PostMapper {
 
-  List<Post> findPost(@Param("search") Search search);
+  List<Post> findPost(@Param("search") Search search, @Param("startIdx") int startIdx,
+      @Param("listSize") int listSize);
 
   Post findByPostId(@Param("postId") int postId);
 
   String findPwdByPostId(@Param("postId") int postId);
+
+  int findTotalCount(@Param("search") Search search);
 
   void insertPost(@Param("post") Post post);
 

@@ -1,10 +1,13 @@
+import PAGING from "./paging.js";
+
 const COMMENT = {
   init: function (postId) {
     const self = this;
-    const $container = $(".container");
+    const $comment = $(".comment");
     COMMENT.options.commentActive.forEach(function () {
       COMMENT.options.commentActive.pop();
     })
+    COMMENT.pagingOptions.postId = postId;
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -15,6 +18,10 @@ const COMMENT = {
                       </div>
                       
                       <div class="commentDiv" style="margin-top: 15px; margin-bottom: 30px"></div>
+                      
+                      <nav aria-label="pagination" id="pageNav">
+                        <ul class="pagination justify-content-center" id="pageUl"></ul>
+                      </nav>
                       
                       <div class="modal fade" id="modifyModal" tabindex="-1" aria-labelledby="modifyModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -58,25 +65,21 @@ const COMMENT = {
                           </div>
                         </div>
                       </div>`
-    $container.append(template);
+    $comment.empty().append(template);
+    $("#pageUl").empty();
     self.event(postId);
-    self.getRootComment(postId);
+    self.getRootComment(COMMENT.pagingOptions.parameters);
   },
-  getComments: function (postId, parentId, callbackFunc) {
-    $.get(`/api/board/comment/${postId}/${parentId}`)
-    .done(function (data) {
-      let commentTemplate = '';
-      console.log("getComments start");
-      console.log(data);
-      console.log("getComments end");
-      for (let i = 0; i < data.length; i++) {
-        const commentId = data[i].id;
-        const nickname = data[i].nickname;
-        const content = data[i].content;
-        const groupId = data[i].groupId;
-        const nestedCommentId = "nested" + data[i].id;
-        const nestedCommentCnt = data[i].commentCnt;
-        commentTemplate += `<div class="row" style="border: 1px solid darkgrey;" id="${commentId}">
+  getCommentTemplate: function (data) {
+    let commentTemplate = ''
+    data.forEach(function (element) {
+      const commentId = element.id;
+      const nickname = element.nickname;
+      const content = element.content;
+      const groupId = element.groupId;
+      const nestedCommentId = "nested" + element.id;
+      const nestedCommentCnt = element.commentCnt;
+      commentTemplate += `<div class="row" style="border: 1px solid darkgrey;" id="${commentId}">
                                 <div class="ni col- ${commentId}" style="font-size: smaller; text-align: left; margin-top: 3px">닉네임 : ${nickname}</div>
                                 <div class="col-9 ${commentId}" style="text-align: left;">${content}</div>
                                 <div class="md col-" style="text-align: right">
@@ -92,8 +95,34 @@ const COMMENT = {
                                 </div>
                                 <div id="${nestedCommentId}" style="border: 1px solid darkgrey; display: none"></div>
                             </div>`;
+    });
+    return commentTemplate;
+  },
+  getCommentCount: function (postId, parentId) {
+    $.get(`/api/board/comment/totalCount/${postId}/${parentId}`)
+    .done(function (data) {
+      COMMENT.pagingOptions.totalCount = data;
+    })
+  },
+  getComments: function (postId, parentId, callbackFunc) {
+    const self = this;
+    let startIdx = 0;
+    let listSize = 0;
+    if (parentId === 0) {
+      self.getCommentCount(postId, parentId); // 현재 내가 속해져 있는 객체를 호출 java instance
+      startIdx = (self.pagingOptions.pageNumber - 1)
+          * self.pagingOptions.listSize;
+      listSize = self.pagingOptions.listSize;
+    }
+    $.get(`/api/board/comment/${postId}/${parentId}`,
+        {startIdx: startIdx, listSize: listSize})
+    .done(function (data) {
+      self.pagingOptions.parameters = {
+        postId: postId,
+        pageNumber: self.pagingOptions.pageNumber
       }
-      callbackFunc(commentTemplate);
+      PAGING.init(COMMENT.pagingOptions);
+      callbackFunc(COMMENT.getCommentTemplate(data));
     });
   },
   commentActiveCheck: function (postId) {
@@ -102,25 +131,25 @@ const COMMENT = {
       $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
     })
   },
-  getRootComment: function (postId) {
+  getRootComment: function (parameter) {
     $("div.commentDiv").empty()
-    COMMENT.getComments(postId, 0, function (commentTemplate) {
+    COMMENT.pagingOptions.func = this.getRootComment;
+    COMMENT.pagingOptions.pageNumber = parameter.pageNumber;
+    COMMENT.getComments(parameter.postId, 0, function (commentTemplate) {
       $("div.commentDiv").append(commentTemplate);
-      COMMENT.commentActiveCheck(postId);
-      COMMENT.commentDetail(postId);
+      COMMENT.commentActiveCheck(parameter.postId);
+      COMMENT.commentDetail(parameter.postId);
     });
-    COMMENT.commentDetail(postId);
+    COMMENT.commentDetail(parameter.postId);
   },
   showComment: function (postId, commentId) {
     const self = this;
     let preCommentId = commentId;
     let rootCommentId = "nested" + commentId;
     $("div#" + rootCommentId).empty();
-    $.get(`/api/board/comment/${postId}/${preCommentId}`)
+    $.get(`/api/board/comment/${postId}/${preCommentId}`,
+        {startIdx: 0, listSize: 0})
     .done(function (data) {
-      console.log("showComment start");
-      console.log(data);
-      console.log("showComment end");
       data.forEach(function (element) {
         const commentId = element.id;
         const nickname = element.nickname;
@@ -191,7 +220,7 @@ const COMMENT = {
               if (COMMENT.options.commentActive.indexOf(groupId) === -1) {
                 COMMENT.options.commentActive.push(groupId);
               }
-              COMMENT.getRootComment(postId);
+              COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
             });
           });
         });
@@ -215,7 +244,7 @@ const COMMENT = {
               if (data === "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
-                COMMENT.getRootComment(postId);
+                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
               } else if (data === "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
               } else {
@@ -252,7 +281,7 @@ const COMMENT = {
               if (data) {
                 alert("수정되었습니다.")
                 modifyModal.hide();
-                COMMENT.getRootComment(postId);
+                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
               } else {
                 $("#errorCommentPassword").text("비밀번호가 일치하지 않습니다.");
               }
@@ -263,7 +292,7 @@ const COMMENT = {
         function () {
           const commentId = $(this).attr('name');
           const rootCommentId = "nested" + commentId;
-          self.showComment(postId, commentId, commentId);
+          self.showComment(postId, commentId);
           $("div#" + rootCommentId).toggle(function () {
             if (COMMENT.options.commentActive.indexOf(commentId) === -1) {
               COMMENT.options.commentActive.push(commentId);
@@ -288,12 +317,21 @@ const COMMENT = {
         $("#content").val('');
         $("#commentPassword").val('');
         $("#nickname").val('');
-        COMMENT.getRootComment(postId);
+        COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
       });
     });
   },
   options: {
     commentActive: []
+  },
+  pagingOptions: {
+    func: '',
+    pageNumber: 1,
+    totalCount: '',
+    pageSize: 2,
+    listSize: 3,
+    postId: '',
+    parameters: {}
   }
 }
 export default COMMENT;

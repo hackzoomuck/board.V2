@@ -27,12 +27,17 @@ public class CommentService {
     return commentMapper.findComment(id);
   }
 
-  public List<Comment> findAll(int postId, int parentId) {
-    List<Comment> comments = commentMapper.findAllComment(postId, parentId);
+  public List<Comment> findAll(int postId, int parentId, int startIdx, int listSize) {
+    List<Comment> comments = commentMapper.findAllComment(postId, parentId, startIdx, listSize);
     for (Comment c : comments) {
-      c.setCommentCnt(commentMapper.findNestedComment(c) - 1); //count subquery로 수행
+      c.setCommentCnt(
+          commentMapper.findNestedComment(c) - 1); //count subquery로 수행 : 성능 부분에서 어떤게 좋을 지 생각해보기.
     }
     return comments;
+  }
+
+  public int totalCount(int postId, int parentId) {
+    return commentMapper.findTotalCount(postId, parentId);
   }
 
   public Boolean modify(Comment comment) {

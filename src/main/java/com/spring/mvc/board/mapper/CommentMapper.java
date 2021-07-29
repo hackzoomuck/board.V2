@@ -14,11 +14,14 @@ public interface CommentMapper {
 
   void updateCommentGroupId(@Param("id") int id);
 
-  List<Comment> findAllComment(@Param("postId") int postId, @Param("parentId") int parentId);
+  List<Comment> findAllComment(@Param("postId") int postId, @Param("parentId") int parentId,
+      int startIdx, int listSize);
 
   int findNestedComment(@Param("comment") Comment comment);
 
   int findChildComment(@Param("id") int id);
+
+  int findTotalCount(@Param("postId") int postId, @Param("parentId") int parentId);
 
   String findPwdById(@Param("id") int id);
 

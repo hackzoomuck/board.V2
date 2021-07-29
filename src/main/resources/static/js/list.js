@@ -1,6 +1,7 @@
 import PAGING from "./paging.js";
 import DETAIL from "./detail.js";
 import REGISTER from "./register.js";
+import COMMENT from "./comment.js";
 
 const LIST = {
   init: function () {
@@ -45,46 +46,52 @@ const LIST = {
     $("#postItem").val(self.params.postItem);
     $("#postItemValue").val(self.params.postItemValue);
     self.event();
-    LIST.getPosts();
+    LIST.getPosts(self.pagingOptions.pageNumber);
   },
-  getPosts: function () {
+  getPosts: function (pageNumber) {
     const self = this;
+    LIST.pagingOptions.pageNumber = pageNumber;
+    LIST.pagingOptions.func = self.getPosts;
+    const startIdx = (LIST.pagingOptions.pageNumber - 1)
+        * LIST.pagingOptions.listSize; // 정확한 값으로 요청한다, page번호를 넘기도록.
+    // 2번 페이지부터 볼 것이다. listSize : 컨트롤러에서 페이징 관련 값을 받도록 한다.
+    // api/board 는 여기서만 사용된다. default 하고, 추후 값이 넘어가면 options으로 넘겨준다.
+    // api는 직관적이어야 한다. startIdx가 아니라 내가 보고 싶은 페이지로 해준다.
     $.get('/api/board', {
       "postItem": $("#postItem").val(),
-      "postItemValue": $("#postItemValue").val()
+      "postItemValue": $("#postItemValue").val(),
+      "startIdx": startIdx,
+      "listSize": LIST.pagingOptions.listSize
     })
     .done(
-        function (data) {
-          const len = data.length;
+        function (response) {
+          const len = response.data.length;
+          LIST.pagingOptions.totalCount = response.totalCount;
+          $("div.container > div.row:nth-child(n+2)").remove();
           if (len === 0) {
             let div_str = `<div class=\"row\">
                          <p> <br> 검색된 내용이 없습니다.</p>
                          </div>`;
             $("div.container").append(div_str);
           }
-          PAGING.options.totalCount = len;
-          PAGING.setStartEndPage("list");
-          const pageNumber = PAGING.options.pageNumber;
-          const listSize = PAGING.options.listSize;
-          const idx = len - (pageNumber - 1) * listSize;
-
-          for (let i = idx - 1; i >= 0 && i >= idx - listSize; i--) {
-            const postId = data[i].postId;
-            const title = data[i].title;
-            const updateDate = data[i].updateDate.substring(0, 10);
+          response.data.forEach(function (element) {
+            const postId = element.postId;
+            const title = element.title;
+            const updateDate = element.updateDate.substring(0, 10);
             const div_str = `<div class="row">
                               <div class="col">${postId}</div>
                               <div class="col-6">${title}</div>
                               <div class="col">${updateDate}</div>
                              </div>`;
             $("div.container").append(div_str);
-          }
-          PAGING.init();
-          self.detail();
+          });
+          PAGING.init(LIST.pagingOptions);
+          LIST.detail();
         });
   },
   detail: function () {
     $("div.container > div.row:gt(0)").off().click(function () {
+      COMMENT.pagingOptions.pageNumber = 1;
       DETAIL.init($(this).find("div.col:first-child").text());
     })
   },
@@ -94,17 +101,17 @@ const LIST = {
       $("div.container > div.row:gt(0)").remove();
       self.params.postItem = $("#postItem").val();
       self.params.postItemValue = $("#postItemValue").val();
-      PAGING.options.pageNumber = 1;
-      self.getPosts();
+      LIST.pagingOptions.pageNumber = 1;
+      self.getPosts(self.pagingOptions.pageNumber);
     });
     $("#searchAllButton").on("click", function () {
       $("div.container > div.row:gt(0)").remove();
       $("#postItem").val("postAll");
       $("#postItemValue").val("");
-      PAGING.options.pageNumber = 1;
+      LIST.pagingOptions.pageNumber = 1;
       self.params.postItem = 'postAll';
       self.params.postItemValue = '';
-      self.getPosts();
+      self.getPosts(self.pagingOptions.pageNumber);
     });
     $("#registerButton").on("click", function () {
       REGISTER.init();
@@ -114,6 +121,14 @@ const LIST = {
     postItem: 'postAll',
     postItemValue: '',
   },
+  pagingOptions: {
+    pageNumber: 1,
+    totalCount: '',
+    pageSize: 3,
+    listSize: 5,
+    func: function () {
+    },
+  }
 }
 
 LIST.init()

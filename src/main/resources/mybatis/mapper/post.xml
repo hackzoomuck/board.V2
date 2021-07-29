@@ -16,8 +16,25 @@
     WHERE post_id = #{postId}
   </select>
 
-  <select id="findPost" parameterType="Search" resultType="Post">
+  <select id="findPost" parameterType="map" resultType="Post">
     SELECT post_id, title, content, update_date FROM post WHERE
+    delete_whether = FALSE
+    <if test="'postAll'.equals(search.postItem)">
+      AND (title LIKE CONCAT('%',#{search.postItemValue},'%')
+      OR content LIKE CONCAT('%',#{search.postItemValue},'%'))
+    </if>
+    <if test="'title'.equals(search.postItem)">
+      AND title LIKE CONCAT('%',#{search.postItemValue},'%')
+    </if>
+    <if test="'content'.equals(search.postItem)">
+      AND content LIKE CONCAT('%',#{search.postItemValue},'%')
+    </if>
+    ORDER BY post_id DESC
+    LIMIT #{listSize} OFFSET #{startIdx}
+  </select>
+
+  <select id="findTotalCount" parameterType="Search" resultType="int">
+    SELECT COUNT(*) FROM post WHERE
     delete_whether = FALSE
     <if test="'postAll'.equals(search.postItem)">
       AND (title LIKE CONCAT('%',#{search.postItemValue},'%')
