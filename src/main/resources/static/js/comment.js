@@ -68,9 +68,9 @@ const COMMENT = {
     $comment.empty().append(template);
     $("#pageUl").empty();
     self.event(postId);
-    self.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
+    self.getRootComment(COMMENT.pagingOptions.parameters);
   },
-  getCommentTemplate: function (data, callbackFunc) {
+  getCommentTemplate: function (data) {
     let commentTemplate = ''
     data.forEach(function (element) {
       const commentId = element.id;
@@ -96,7 +96,7 @@ const COMMENT = {
                                 <div id="${nestedCommentId}" style="border: 1px solid darkgrey; display: none"></div>
                             </div>`;
     });
-    callbackFunc(commentTemplate);
+    return commentTemplate;
   },
   getCommentCount: function (postId, parentId) {
     $.get(`/api/board/comment/totalCount/${postId}/${parentId}`)
@@ -105,23 +105,24 @@ const COMMENT = {
     })
   },
   getComments: function (postId, parentId, callbackFunc) {
-    let commentTemplate = '';
+    const self = this;
     let startIdx = 0;
     let listSize = 0;
     if (parentId === 0) {
-      COMMENT.getCommentCount(postId, parentId);
-      startIdx = (COMMENT.pagingOptions.pageNumber - 1)
-          * COMMENT.pagingOptions.listSize;
-      listSize = COMMENT.pagingOptions.listSize;
+      self.getCommentCount(postId, parentId); // 현재 내가 속해져 있는 객체를 호출 java instance
+      startIdx = (self.pagingOptions.pageNumber - 1)
+          * self.pagingOptions.listSize;
+      listSize = self.pagingOptions.listSize;
     }
     $.get(`/api/board/comment/${postId}/${parentId}`,
         {startIdx: startIdx, listSize: listSize})
     .done(function (data) {
+      self.pagingOptions.parameters = {
+        postId: postId,
+        pageNumber: self.pagingOptions.pageNumber
+      }
       PAGING.init(COMMENT.pagingOptions);
-      COMMENT.getCommentTemplate(data, function (getCommentTemplate) {
-        commentTemplate = getCommentTemplate;
-      });
-      callbackFunc(commentTemplate);
+      callbackFunc(COMMENT.getCommentTemplate(data));
     });
   },
   commentActiveCheck: function (postId) {
@@ -130,16 +131,16 @@ const COMMENT = {
       $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
     })
   },
-  getRootComment: function (postId, pageNumber) {
+  getRootComment: function (parameter) {
     $("div.commentDiv").empty()
     COMMENT.pagingOptions.func = this.getRootComment;
-    COMMENT.pagingOptions.pageNumber = pageNumber;
-    COMMENT.getComments(postId, 0, function (commentTemplate) {
+    COMMENT.pagingOptions.pageNumber = parameter.pageNumber;
+    COMMENT.getComments(parameter.postId, 0, function (commentTemplate) {
       $("div.commentDiv").append(commentTemplate);
-      COMMENT.commentActiveCheck(postId);
-      COMMENT.commentDetail(postId);
+      COMMENT.commentActiveCheck(parameter.postId);
+      COMMENT.commentDetail(parameter.postId);
     });
-    COMMENT.commentDetail(postId);
+    COMMENT.commentDetail(parameter.postId);
   },
   showComment: function (postId, commentId) {
     const self = this;
@@ -219,7 +220,7 @@ const COMMENT = {
               if (COMMENT.options.commentActive.indexOf(groupId) === -1) {
                 COMMENT.options.commentActive.push(groupId);
               }
-              COMMENT.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
+              COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
             });
           });
         });
@@ -243,8 +244,7 @@ const COMMENT = {
               if (data === "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
-                COMMENT.getRootComment(postId,
-                    COMMENT.pagingOptions.pageNumber);
+                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
               } else if (data === "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
               } else {
@@ -281,8 +281,7 @@ const COMMENT = {
               if (data) {
                 alert("수정되었습니다.")
                 modifyModal.hide();
-                COMMENT.getRootComment(postId,
-                    COMMENT.pagingOptions.pageNumber);
+                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
               } else {
                 $("#errorCommentPassword").text("비밀번호가 일치하지 않습니다.");
               }
@@ -318,7 +317,7 @@ const COMMENT = {
         $("#content").val('');
         $("#commentPassword").val('');
         $("#nickname").val('');
-        COMMENT.getRootComment(postId, COMMENT.pagingOptions.pageNumber);
+        COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
       });
     });
   },
@@ -331,8 +330,8 @@ const COMMENT = {
     totalCount: '',
     pageSize: 2,
     listSize: 3,
-    pageName: 'COMMENT',
-    postId: ''
+    postId: '',
+    parameters: {}
   }
 }
 export default COMMENT;

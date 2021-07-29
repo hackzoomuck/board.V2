@@ -1,9 +1,9 @@
 package com.spring.mvc.board.controller;
 
 import com.spring.mvc.board.dto.Post;
+import com.spring.mvc.board.dto.ResultPost;
 import com.spring.mvc.board.dto.Search;
 import com.spring.mvc.board.service.PostService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +16,12 @@ public class BoardController {
 
 
   @GetMapping
-  public List<Post> search(Search search, int startIdx, int listSize) {
-    return postService.find(search, startIdx, listSize);
+  public ResultPost search(Search search, int startIdx,
+      int listSize) { // 새로운 responseDto,totalCount
+    return ResultPost.builder()
+        .data(postService.find(search, startIdx, listSize))
+        .totalCount(postService.totalCount(search))
+        .build();
   }
 
   @GetMapping("/{postId}")

@@ -48,29 +48,25 @@ const LIST = {
     self.event();
     LIST.getPosts(self.pagingOptions.pageNumber);
   },
-  getPostCount: function () {
-    $.get('/api/board/totalCount', {
-      "postItem": $("#postItem").val(),
-      "postItemValue": $("#postItemValue").val()
-    }).done(function (data) {
-      LIST.pagingOptions.totalCount = data;
-    })
-  },
   getPosts: function (pageNumber) {
     const self = this;
     LIST.pagingOptions.pageNumber = pageNumber;
     LIST.pagingOptions.func = self.getPosts;
-    LIST.getPostCount();
+    const startIdx = (LIST.pagingOptions.pageNumber - 1)
+        * LIST.pagingOptions.listSize; // 정확한 값으로 요청한다, page번호를 넘기도록.
+    // 2번 페이지부터 볼 것이다. listSize : 컨트롤러에서 페이징 관련 값을 받도록 한다.
+    // api/board 는 여기서만 사용된다. default 하고, 추후 값이 넘어가면 options으로 넘겨준다.
+    // api는 직관적이어야 한다. startIdx가 아니라 내가 보고 싶은 페이지로 해준다.
     $.get('/api/board', {
       "postItem": $("#postItem").val(),
       "postItemValue": $("#postItemValue").val(),
-      "startIdx": (LIST.pagingOptions.pageNumber - 1)
-          * LIST.pagingOptions.listSize,
+      "startIdx": startIdx,
       "listSize": LIST.pagingOptions.listSize
     })
     .done(
-        function (data) {
-          const len = data.length;
+        function (response) {
+          const len = response.data.length;
+          LIST.pagingOptions.totalCount = response.totalCount;
           $("div.container > div.row:nth-child(n+2)").remove();
           if (len === 0) {
             let div_str = `<div class=\"row\">
@@ -78,7 +74,7 @@ const LIST = {
                          </div>`;
             $("div.container").append(div_str);
           }
-          data.forEach(function (element) {
+          response.data.forEach(function (element) {
             const postId = element.postId;
             const title = element.title;
             const updateDate = element.updateDate.substring(0, 10);
@@ -130,7 +126,6 @@ const LIST = {
     totalCount: '',
     pageSize: 3,
     listSize: 5,
-    pageName: 'LIST',
     func: function () {
     },
   }

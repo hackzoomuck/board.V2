@@ -30,7 +30,8 @@ public class CommentService {
   public List<Comment> findAll(int postId, int parentId, int startIdx, int listSize) {
     List<Comment> comments = commentMapper.findAllComment(postId, parentId, startIdx, listSize);
     for (Comment c : comments) {
-      c.setCommentCnt(commentMapper.findNestedComment(c) - 1); //count subquery로 수행
+      c.setCommentCnt(
+          commentMapper.findNestedComment(c) - 1); //count subquery로 수행 : 성능 부분에서 어떤게 좋을 지 생각해보기.
     }
     return comments;
   }

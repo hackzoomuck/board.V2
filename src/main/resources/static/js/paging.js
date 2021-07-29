@@ -76,11 +76,8 @@ const PAGING = {
   },
   event: function () {
     $("#pageUl > ").off().on("click", function () {
-      if (PAGING.options.pageName === "COMMENT") {
-        PAGING.options.func(PAGING.options.postId, $(this).val())
-      } else {
-        PAGING.options.func($(this).val());
-      }
+      PAGING.options.parameters.pageNumber = $(this).val();
+      PAGING.options.func(PAGING.options.parameters);
     });
   },
   options: {
@@ -89,7 +86,7 @@ const PAGING = {
     totalCount: '',
     pageSize: '',
     listSize: '',
-    pageName: ''
+    parameters: {}
   },
   variable: {
     startPageNumber: '',
