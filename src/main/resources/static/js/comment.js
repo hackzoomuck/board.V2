@@ -325,6 +325,7 @@ const COMMENT = {
     commentActive: []
   },
   pagingOptions: {
+    //func : COMMENT.getComments, //()붙이면 실행됨.
     pageNumber: 1,
     pageSize: 2,
     listSize: 3,

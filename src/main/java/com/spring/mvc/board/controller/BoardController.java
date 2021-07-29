@@ -16,8 +16,8 @@ public class BoardController {
 
 
   @GetMapping
-  public List<Post> search(Search search) {
-    return postService.find(search);
+  public List<Post> search(Search search, int startIdx, int listSize) {
+    return postService.find(search, startIdx, listSize);
   }
 
   @GetMapping("/{postId}")
@@ -28,6 +28,11 @@ public class BoardController {
   @GetMapping("/checkPwd")
   public Boolean checkPwd(int postId, String password) {
     return postService.checkPwd(postId, password);
+  }
+
+  @GetMapping("/totalCount")
+  public int totalCount(Search search) {
+    return postService.totalCount(search);
   }
 
   @PostMapping

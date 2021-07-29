@@ -1,12 +1,13 @@
-import LIST from "./list.js";
-import COMMENT from "./comment.js";
-
 const PAGING = {
-  init: function () {
+  init: function (pagingOptions) {
     const self = this;
+    PAGING.options = $.extend({}, PAGING.options, pagingOptions);
+    console.log("in paging init " + PAGING.options.pageName + " ");
+    self.setStartEndPage();
     self.draw();
   },
   draw: function () {
+    console.log("paging draw");
     const self = this;
     const $pageUl = $("#pageUl");
     $pageUl.empty();
@@ -69,20 +70,27 @@ const PAGING = {
       endNumber = this.variable.totalPageNumber;
     }
     self.variable.endPageNumber = endNumber;
+    console.log("setStartEnd: " + self.variable.startPageNumber + ", "
+        + self.variable.endPageNumber)
   },
   event: function () {
+    //const self = this;
     $("#pageUl > ").off().on("click", function () {
-      if (PAGING.options.pageName === 'LIST') { // PAGING.options.pageName 을 모듈이름으로 사용할 수 있는지?
-        LIST.pagingOptions.pageNumber = $(this).val();
-        LIST.init();
-      }
-      if (PAGING.options.pageName === 'COMMENT') {
-        COMMENT.pagingOptions.pageNumber = $(this).val();
-        COMMENT.init(COMMENT.pagingOptions.postId);
-      }
+      console.log($(this).val());
+      PAGING.options.func($(this).val());
+      // if (PAGING.options.pageName === 'LIST') { // PAGING.options.pageName 을 모듈이름으로 사용할 수 있는지?
+      //   LIST.pagingOptions.pageNumber = $(this).val();
+      //   LIST.init(); // init 호출하는 게 아니라 list를 그리는 부분만 호출하기. options의 function
+      // }
+      // if (PAGING.options.pageName === 'COMMENT') {
+      //   COMMENT.pagingOptions.pageNumber = $(this).val();
+      //   COMMENT.init(COMMENT.pagingOptions.postId);
+      // }
+      //this.options.func();
     });
   },
   options: {
+    func: '',
     pageNumber: '',
     totalCount: '',
     pageSize: '',
