@@ -1,14 +1,19 @@
 const PAGING = {
   init: function (pagingOptions) {
     const self = this;
-    PAGING.options = $.extend({}, PAGING.options, pagingOptions);
+    self.options = $.extend({}, self.options, pagingOptions);
     self.settingStartEndPage();
-    if (PAGING.variable.totalPageNumber !== 0 && PAGING.variable.totalPageNumber
-        < PAGING.options.pageNumber) {
-      PAGING.options.func(PAGING.options.postId,
-          PAGING.variable.totalPageNumber);
+    if (self.variable.totalPageNumber !== 0 && self.variable.totalPageNumber
+        < self.options.pageNumber) {
+      self.options.pageNumber = self.variable.totalPageNumber;
+      self.options.parameters.pageNumber = self.variable.totalPageNumber;
+      self.settingStartEndPage();
+      self.draw();
+      self.options.func(self.options.parameters);
     }
-    self.draw();
+    else {
+      self.draw();
+    }
   },
   draw: function () {
     const self = this;
@@ -75,9 +80,10 @@ const PAGING = {
     self.variable.endPageNumber = endNumber;
   },
   event: function () {
+    const self = this;
     $("#pageUl > ").off().on("click", function () {
-      PAGING.options.parameters.pageNumber = $(this).val();
-      PAGING.options.func(PAGING.options.parameters);
+      self.options.parameters.pageNumber = $(this).val();
+      self.options.func(self.options.parameters);
     });
   },
   options: {

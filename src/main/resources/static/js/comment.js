@@ -4,10 +4,11 @@ const COMMENT = {
   init: function (postId) {
     const self = this;
     const $comment = $(".comment");
-    COMMENT.options.commentActive.forEach(function () {
-      COMMENT.options.commentActive.pop();
+    self.options.commentActive.forEach(function () {
+        self.options.commentActive.pop();
     })
-    COMMENT.pagingOptions.postId = postId;
+    self.pagingOptions.postId = postId;
+    self.pagingOptions.parameters.postId = postId;
     const template = `<div class="input-group" style="margin-top: 15px">
                         <textarea class="form-control" placeholder="댓글을 입력하세요." id="content" aria-label="comment" aria-describedby="button-addon2"></textarea>
                       </div>
@@ -68,7 +69,7 @@ const COMMENT = {
     $comment.empty().append(template);
     $("#pageUl").empty();
     self.event(postId);
-    self.getRootComment(COMMENT.pagingOptions.parameters);
+    self.getRootComment(self.pagingOptions.parameters);
   },
   getCommentTemplate: function (data) {
     let commentTemplate = ''
@@ -99,9 +100,10 @@ const COMMENT = {
     return commentTemplate;
   },
   getCommentCount: function (postId, parentId) {
+    const self = this;
     $.get(`/api/board/comment/totalCount/${postId}/${parentId}`)
     .done(function (data) {
-      COMMENT.pagingOptions.totalCount = data;
+        self.pagingOptions.totalCount = data;
     })
   },
   getComments: function (postId, parentId, callbackFunc) {
@@ -110,37 +112,36 @@ const COMMENT = {
     let listSize = 0;
     if (parentId === 0) {
       self.getCommentCount(postId, parentId); // 현재 내가 속해져 있는 객체를 호출 java instance
-      startIdx = (self.pagingOptions.pageNumber - 1)
-          * self.pagingOptions.listSize;
+      startIdx = (self.pagingOptions.pageNumber - 1) * self.pagingOptions.listSize;
       listSize = self.pagingOptions.listSize;
     }
-    $.get(`/api/board/comment/${postId}/${parentId}`,
-        {startIdx: startIdx, listSize: listSize})
+    $.get(`/api/board/comment/${postId}/${parentId}`, {startIdx: startIdx, listSize: listSize})
     .done(function (data) {
       self.pagingOptions.parameters = {
         postId: postId,
         pageNumber: self.pagingOptions.pageNumber
       }
-      PAGING.init(COMMENT.pagingOptions);
-      callbackFunc(COMMENT.getCommentTemplate(data));
+      PAGING.init(self.pagingOptions);
+      callbackFunc(self.getCommentTemplate(data));
     });
   },
   commentActiveCheck: function (postId) {
-    COMMENT.options.commentActive.forEach(function (commentId) {
-      COMMENT.showComment(postId, commentId);
-      $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
+    const self = this;
+      self.options.commentActive.forEach(function (commentId) {
+        self.showComment(postId, commentId);
+        $("div#nested" + commentId).toggle();//showComment 내에 존재해야함.
     })
   },
   getRootComment: function (parameter) {
     $("div.commentDiv").empty()
-    COMMENT.pagingOptions.func = this.getRootComment;
-    COMMENT.pagingOptions.pageNumber = parameter.pageNumber;
-    COMMENT.getComments(parameter.postId, 0, function (commentTemplate) {
+      COMMENT.pagingOptions.func = this.getRootComment;
+      COMMENT.pagingOptions.pageNumber = parameter.pageNumber;
+      COMMENT.getComments(parameter.postId, 0, function (commentTemplate) {
       $("div.commentDiv").append(commentTemplate);
-      COMMENT.commentActiveCheck(parameter.postId);
-      COMMENT.commentDetail(parameter.postId);
+          COMMENT.commentActiveCheck(parameter.postId);
+          COMMENT.commentDetail(parameter.postId);
     });
-    COMMENT.commentDetail(parameter.postId);
+      COMMENT.commentDetail(parameter.postId);
   },
   showComment: function (postId, commentId) {
     const self = this;
@@ -217,10 +218,10 @@ const COMMENT = {
               $("#nestedCommentPasswordModal").val('');
               $("#nestedCommentNicknameModal").val('');
               nestedCommentModal.hide();
-              if (COMMENT.options.commentActive.indexOf(groupId) === -1) {
-                COMMENT.options.commentActive.push(groupId);
+              if (self.options.commentActive.indexOf(groupId) === -1) {
+                  self.options.commentActive.push(groupId);
               }
-              COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
+                self.getRootComment(self.pagingOptions.parameters);
             });
           });
         });
@@ -244,7 +245,7 @@ const COMMENT = {
               if (data === "true") {
                 alert("삭제되었습니다.")
                 passwordModal.hide();
-                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
+                  self.getRootComment(self.pagingOptions.parameters);
               } else if (data === "false") {
                 $("#errorPassword").text("비밀번호가 일치하지 않습니다.");
               } else {
@@ -281,7 +282,7 @@ const COMMENT = {
               if (data) {
                 alert("수정되었습니다.")
                 modifyModal.hide();
-                COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
+                  self.getRootComment(self.pagingOptions.parameters);
               } else {
                 $("#errorCommentPassword").text("비밀번호가 일치하지 않습니다.");
               }
@@ -294,17 +295,18 @@ const COMMENT = {
           const rootCommentId = "nested" + commentId;
           self.showComment(postId, commentId);
           $("div#" + rootCommentId).toggle(function () {
-            if (COMMENT.options.commentActive.indexOf(commentId) === -1) {
-              COMMENT.options.commentActive.push(commentId);
+            if (self.options.commentActive.indexOf(commentId) === -1) {
+                self.options.commentActive.push(commentId);
             } else {
-              const pos = COMMENT.options.commentActive.indexOf(commentId);
-              COMMENT.options.commentActive.splice(pos, 1);
+              const pos = self.options.commentActive.indexOf(commentId);
+                self.options.commentActive.splice(pos, 1);
             }
           });
         }
     );
   },
   event: function (postId) {
+    const self = this;
     $("#commentButton").on("click", function () {
       $.post(`/api/board/comment`,
           {
@@ -317,7 +319,7 @@ const COMMENT = {
         $("#content").val('');
         $("#commentPassword").val('');
         $("#nickname").val('');
-        COMMENT.getRootComment(COMMENT.pagingOptions.parameters);
+          self.getRootComment(self.pagingOptions.parameters);
       });
     });
   },
@@ -331,7 +333,10 @@ const COMMENT = {
     pageSize: 2,
     listSize: 3,
     postId: '',
-    parameters: {}
+    parameters: {
+        pageNumber: 1,
+        postId: ''
+    }
   }
 }
 export default COMMENT;
