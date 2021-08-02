@@ -46,14 +46,16 @@ const LIST = {
     $("#postItem").val(self.params.postItem);
     $("#postItemValue").val(self.params.postItemValue);
     self.event();
+    console.log(self.pagingOptions.pageNumber);
     LIST.getPosts(self.pagingOptions.pageNumber);
   },
-  getPosts: function (pageNumber) {
+  getPosts: function (parameter) {
     const self = this;
-    LIST.pagingOptions.pageNumber = pageNumber;
+    LIST.pagingOptions.pageNumber = parameter.pageNumber;
     LIST.pagingOptions.func = self.getPosts;
     const startIdx = (LIST.pagingOptions.pageNumber - 1)
-        * LIST.pagingOptions.listSize; // 정확한 값으로 요청한다, page번호를 넘기도록.
+        * LIST.pagingOptions.listSize;
+    // 정확한 값으로 요청한다, page번호를 넘기도록.
     // 2번 페이지부터 볼 것이다. listSize : 컨트롤러에서 페이징 관련 값을 받도록 한다.
     // api/board 는 여기서만 사용된다. default 하고, 추후 값이 넘어가면 options으로 넘겨준다.
     // api는 직관적이어야 한다. startIdx가 아니라 내가 보고 싶은 페이지로 해준다.
@@ -85,6 +87,9 @@ const LIST = {
                              </div>`;
             $("div.container").append(div_str);
           });
+          self.pagingOptions.parameters = {
+            pageNumber: self.pagingOptions.pageNumber
+          }
           PAGING.init(LIST.pagingOptions);
           LIST.detail();
         });
@@ -127,7 +132,9 @@ const LIST = {
     pageSize: 3,
     listSize: 5,
     func: function () {
+      t
     },
+    parameters: {}
   }
 }
 
